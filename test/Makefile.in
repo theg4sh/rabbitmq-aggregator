@@ -1,0 +1,8 @@
+TEST_TARGETS+=test_resolver
+
+test_resolver: test/test_resolver.o
+	$(CXX) -o test/$@ $^ $(CXX_LIBRARIES)
+
+clean-tests:
+	find test/ -type f -executable \! -iname "*.cpp" -exec rm -f {} \;
+	rm -f test/*.o

@@ -1,0 +1,3 @@
+[submodule "3rdparty/rabbitmq-c"]
+	path = 3rdparty/rabbitmq-c
+	url = https://github.com/alanxz/rabbitmq-c
