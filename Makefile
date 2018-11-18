@@ -13,8 +13,12 @@ CXX=g++ $(CXX_FLAGS)
 SOURCES := \
 	src/utils.o \
 	src/error.o \
+	src/resolver.o \
 	src/channel.o \
 	src/connection.o \
+	src/consumer.o \
+	src/publisher.o \
+	src/operation.o \
 	src/main.o
 
 .PHONY+=tests all

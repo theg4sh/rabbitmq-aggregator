@@ -70,6 +70,9 @@ public:
 
     void registerCounter(const char* name)
     {
+        if (!this->enabled) {
+            return;
+        }
         counters.emplace(name, Counter(name, this->enabled));
     }
 
@@ -114,6 +117,10 @@ public:
     }
 
     void counterInc(const char* counterName) {
+        if (!this->enabled) {
+            return;
+        }
+
         this->counters.at(counterName).inc();
     }
 };

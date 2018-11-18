@@ -72,14 +72,16 @@ int main(int, char**)
 
     Operation operation(cfg.enableDiag);
 
-    auto consumerA = std::make_shared<QueueConsumer>
-                        (operation, connectionA, channelA, cfg.qA.qName, false);
-    auto consumerB = std::make_shared<QueueConsumer>
-                        (operation, connectionB, channelB, cfg.qB.qName, false);
-    auto publisher = std::make_shared<Publisher>
-                        (connectionC, channelC, cfg.qPublisher.qExchange, cfg.qPublisher.qRoutingKey);
+    std::vector<std::shared_ptr<ControlConsumer>> consumers;
+    consumers.push_back(
+            std::make_shared<QueueConsumer>(operation, connectionA, channelA, cfg.qA.qName, false));
+    consumers.push_back(
+            std::make_shared<QueueConsumer>(operation, connectionB, channelB, cfg.qB.qName, false));
 
-    operation.init(consumerA, consumerB, publisher);
+    auto publisher = std::make_shared<Publisher>
+            (connectionC, channelC, cfg.qPublisher.qExchange, cfg.qPublisher.qRoutingKey);
+
+    operation.init(consumers, publisher);
 
     operation.run();
     return 0;

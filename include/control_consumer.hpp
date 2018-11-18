@@ -15,6 +15,7 @@ public:
     virtual bool ack(uint64_t deliveryTag) = 0;
     virtual bool reject(uint64_t deliveryTag) = 0;
 
+    virtual std::string getQueueName() = 0;
     virtual std::shared_ptr<Connection> connection() = 0;
 
     virtual ~ControlConsumer() = default;
