@@ -8,6 +8,8 @@
 
 #include "utils.hpp"
 
+#define SUMMARY_EVERY_US 1000000
+
 struct Diag
 {
 private:
@@ -29,6 +31,7 @@ private:
         int intervalCount() {
             return this->count - this->previous_count;
         }
+
         double intervalRate(uint64_t interval) {
             if (interval>0) {
                 return (double)this->intervalCount() / (interval / 1000000.0);
@@ -48,7 +51,7 @@ private:
         void inc() { if (this->_enabled) this->count++; }
 
         friend std::ostream& operator<<(std::ostream& stream, Counter& c) {
-            stream << "@" << c.name << " ^"
+            stream << c.name << " ^"
                 << c.count << " +" << c.intervalCount()
                 << " ~" << c.intervalRate(c._interval) << "Hz";
             return stream;

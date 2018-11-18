@@ -1,0 +1,7 @@
+export RABBITMQ_C_PATH="$(pwd)/thirdparty/rabbitmq-c/build/librabbitmq"
+export LD_LIBRARY_PATH="${RABBITMQ_C_PATH}"
+
+SUDO=$(which sudo)
+if [ -n "${SUDO}" ]; then
+	${SUDO} ldconfig $RABBITMQ_C_PATH
+fi

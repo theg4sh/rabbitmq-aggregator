@@ -5,8 +5,6 @@
 #include "consumer.hpp"
 #include "operation.hpp"
 
-std::vector<amqp_channel_t> Channel::channels;
-
 class QueueConsumer : public Consumer
 {
 private:
@@ -37,7 +35,7 @@ int main(int, char**)
         std::cerr << "Connection A failed" << std::endl;
         return 1;
     }
-    auto channelA = Channel::create(connectionA);
+    auto channelA = connectionA->createChannel();
     if (!channelA->open()) {
         std::cerr << "Failed to open channel" << std::endl;
         return 2;
@@ -49,7 +47,7 @@ int main(int, char**)
         std::cerr << "Connection B failed" << std::endl;
         return 1;
     }
-    auto channelB = Channel::create(connectionB);
+    auto channelB = connectionB->createChannel();
     if (!channelB->open()) {
         std::cerr << "Failed to open channel" << std::endl;
         return 2;
@@ -61,7 +59,7 @@ int main(int, char**)
         std::cerr << "Connection C failed" << std::endl;
         return 1;
     }
-    auto channelC = Channel::create(connectionC);
+    auto channelC = connectionC->createChannel();
     if (!channelC->open()) {
         std::cerr << "Failed to open channel" << std::endl;
         return 2;

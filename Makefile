@@ -10,13 +10,20 @@ CXX_LIBRARIES=-L$(LIBRABBITMQ_LIBRARY_PATH) -lrabbitmq -lpthread
 CXX_FLAGS=-std=c++14 -Wall -g $(CXX_INCLUDE_PATH)
 CXX=g++ $(CXX_FLAGS)
 
+SOURCES := \
+	src/utils.o \
+	src/error.o \
+	src/channel.o \
+	src/connection.o \
+	src/main.o
+
 .PHONY+=tests all
 
 include test/Makefile.in
 
 all: $(LIBRABBITMQ_LIBRARY_PATH)/librabbitmq.so rmq-aggregator
 
-rmq-aggregator: src/main.o
+rmq-aggregator: $(SOURCES)
 	$(CXX) -o $@ $^ $(CXX_LIBRARIES)
 
 $(LIBRABBITMQ_INCLUDE_PATH):
@@ -27,7 +34,7 @@ $(LIBRABBITMQ_LIBRARY_PATH)/librabbitmq.so: $(LIBRABBITMQ_INCLUDE_PATH)
 	cd $(LIBRABBITMQ_C_PATH)/build && cmake .. && make
 
 clean: clean-tests
-	rm -f src/*.o ./rmq-aggregator
+	rm -f $(SOURCES) ./rmq-aggregator
 
 clean-all: clean
 	rm -rf $(LIBRABBITMQ_C_PATH)/build

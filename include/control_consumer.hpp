@@ -1,6 +1,7 @@
 #ifndef CONTROL_CONSUMER_HPP
 #define CONTROL_CONSUMER_HPP
 
+#include <memory>
 #include <amqp.h>
 
 #include "connection.hpp"
