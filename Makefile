@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-LIBRABBITMQ_C_PATH=./3rdparty/rabbitmq-c
+LIBRABBITMQ_C_PATH=./thirdparty/rabbitmq-c
 
 LIBRABBITMQ_INCLUDE_PATH=$(LIBRABBITMQ_C_PATH)/librabbitmq
 LIBRABBITMQ_LIBRARY_PATH=$(LIBRABBITMQ_C_PATH)/build/librabbitmq
