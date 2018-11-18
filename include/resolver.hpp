@@ -3,7 +3,11 @@
 
 #include <iostream>
 #include <string>
-#include <regex>
+
+//#define DEBUG
+
+#include <string.h>
+#include <amqp.h>
 
 class AmqpResolver
 {
@@ -20,6 +24,9 @@ private:
 
     std::string _vhost;
 
+    struct amqp_connection_info parsed;
+    bool isParsedValid = false;
+
 public:
     AmqpResolver():
         valid(false) {}
@@ -30,57 +37,29 @@ public:
         _port(5672),
         _vhost("/")
     {
-        std::regex uriRegex(
-            R"(^(([^:\/?#]+):)?(//((([^@\/?#:]+)(:([^@\/?#]*))?@)?([^@\/?#:]*)(:([^\/?#]*))?))?([^?#]*)(\?([^#]*))?(#(.*))?)",
-            std::regex::extended);
-        std::smatch uriMatchResult;
-        if (std::regex_match(connectionUri, uriMatchResult, uriRegex)) {
-            this->_protocol = uriMatchResult[2]; // protocol
-            this->_user = uriMatchResult[6]; // username
-            this->_pass = uriMatchResult[8]; // password
-            this->_host = uriMatchResult[9]; // hostname
-            std::string port = uriMatchResult[11]; // port
-            std::string path = uriMatchResult[12]; // uri
-
-            if (!port.empty()) {
-                this->_port = std::stoi(port);
-            }
-            if (!path.empty()) {
-                this->_vhost = std::move(path);
-            }
-
-#           ifdef DEBUG
-            int c = 0;
-            for (const std::string& res : uriMatchResult) {
-                std::cout << c++ << ": " << res << std::endl;
-            }
-#           endif
-        }
+        char connUri[connectionUri.size()];
+        memcpy(connUri, connectionUri.data(), connectionUri.size());
+        int res = amqp_parse_url((char*)connectionUri.c_str(), &this->parsed);
+        std::cerr << connectionUri << std::endl;
+        this->isParsedValid = (res == 0);
     }
 
     bool verify() {
-        this->valid = true;
-        if (this->_protocol != "amqp") {
-            this->valid = false;
+        if (this->isParsedValid) {
+            this->_protocol = (this->parsed.ssl ? "amqps" : "amqp");
+            this->_host = this->parsed.host;
+            this->_user = this->parsed.user;
+            this->_pass = this->parsed.password;
+            this->_port = this->parsed.port;
+            if (strlen(this->parsed.vhost) > 0) {
+                this->_vhost = this->parsed.vhost;
+            }
         }
-        if (this->_port <=0 ) {
-            this->valid = false;
-            std::cerr << "Invalid port: " << this->_port << std::endl;
-        }
-        if (this->_host.empty()) {
-            this->valid = false;
-            std::cerr << "Invalid hostname: '" << this->_host << "'" << std::endl;
-        }
-        if (this->_vhost.empty()) {
-            this->valid = false;
-            std::cerr << "Invalid uri: empty vhost" << std::endl;
-        }
-
 #       ifdef DEBUG
-        std::cout << this->_protocol << " " << this->_user << " : " << this->_pass
-            << " @ " << this->_host << " : " << this->_port << " " << this->_vhost << std::endl;
+        std::cout << this->protocol() << " " << this->user() << " : " << this->pass()
+            << " @ " << this->host() << " : " << this->port() << " '" << this->vhost() << "'" << std::endl;
 #       endif
-        return this->valid;
+        return this->isParsedValid;
     }
 
     bool isValid() { return this->valid; }
