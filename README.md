@@ -2,10 +2,21 @@
 
 The project aggregate messages from multiple consumers, merge them and publish into publish exchange.
 
+### Dependencies
+
+```
+pthread
+libconfig
+libconfig-dev
+```
+
 ## Configure
 
-Currently, configuration is accessible with `include/config.hpp`.
-The code is ready to process multiple consumers, but only two cunsumers are supported in `main.cpp`.
+To configure you'll need to copy `config.cfg.example` to `config.cfg`
+and set `consumeFrom` and `publishTo` groups.
+
+See configuration syntax:
+https://www.hyperrealm.com/libconfig/libconfig_manual.html#Configuration-Files
 
 ## How to build?
 
