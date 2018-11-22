@@ -29,7 +29,7 @@ bool Channel::open() {
 
     amqp_channel_open(this->_connection->get(), this->channelId);
     amqp_rpc_reply_t ret = amqp_get_rpc_reply(this->_connection->get());
-    if (isAmqpError(ret)) {
+    if (isAmqpErrorWithMsg(ret)) {
         this->_status = CLOSED;
         return false;
     }

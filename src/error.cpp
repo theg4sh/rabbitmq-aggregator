@@ -2,23 +2,23 @@
 
 #include "error.hpp"
 
-bool isAmqpError(amqp_rpc_reply_t x)
+bool isAmqpErrorWithMsg(const amqp_rpc_reply_t& x)
 {
     switch(x.reply_type) {
     case AMQP_RESPONSE_NORMAL:
         return false;
     case AMQP_RESPONSE_NONE:
-        std::cerr << "missing RPC reply, type!" << std::endl;
+        std::cerr << "Response error: missing RPC reply, type!" << std::endl;
         return true;
     case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-        std::cerr << amqp_error_string2(x.library_error) << std::endl;
+        std::cerr << "Library exception: " << amqp_error_string2(x.library_error) << std::endl;
         return true;
     case AMQP_RESPONSE_SERVER_EXCEPTION:
         switch (x.reply.id) {
         case AMQP_CONNECTION_CLOSE_METHOD: {
             amqp_connection_close_t* m =
                 (amqp_connection_close_t*) x.reply.decoded;
-            std::cerr << "server connection error "
+            std::cerr << "Server exception: server connection error "
                 << m->reply_code << "h, message: "
                 << (char*)m->reply_text.bytes << std::endl;
             break;
@@ -26,7 +26,7 @@ bool isAmqpError(amqp_rpc_reply_t x)
         case AMQP_CHANNEL_CLOSE_METHOD: {
             amqp_channel_close_t* m =
                 (amqp_channel_close_t*) x.reply.decoded;
-            std::cerr << "server channel error "
+            std::cerr << "Server exception: server channel error "
                 << m->reply_code << "h, message: "
                 << (char*)m->reply_text.bytes << std::endl;
             break;
@@ -39,3 +39,12 @@ bool isAmqpError(amqp_rpc_reply_t x)
     return false;
 }
 
+bool isAmqpConnectionCloseError(const amqp_rpc_reply_t& x)
+{
+    return x.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION && x.reply.id == AMQP_CONNECTION_CLOSE_METHOD;
+}
+
+bool isAmqpChannelCloseError(const amqp_rpc_reply_t& x)
+{
+    return x.reply_type == AMQP_RESPONSE_SERVER_EXCEPTION && x.reply.id == AMQP_CHANNEL_CLOSE_METHOD;
+}

@@ -96,7 +96,7 @@ bool Consumer::get()
     amqp_rpc_reply_t ret = amqp_basic_get(this->_connection->get(),
                                           this->_channel->get(),
                                           this->queue, this->noAck);
-    if (isAmqpError(ret)) {
+    if (isAmqpErrorWithMsg(ret)) {
         std::cerr << "Basic get - ReplyType: " << ret.reply_type 
             << "ReplyID: " << ret.reply.id << std::endl;
         return false;
@@ -113,7 +113,7 @@ bool Consumer::get()
                     << "ReplyID: " << ret.reply.id << std::endl;
                 return false;
             }
-            if (isAmqpError(ret)) {
+            if (isAmqpErrorWithMsg(ret)) {
                 std::cerr << "Read message - ReplyType: " << ret.reply_type 
                     << "ReplyID: " << ret.reply.id << std::endl;
                 return false;
@@ -123,6 +123,6 @@ bool Consumer::get()
         }
         return true;
     }
-    isAmqpError(ret);
+    isAmqpErrorWithMsg(ret);
     return false;
 }

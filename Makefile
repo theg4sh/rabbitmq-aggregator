@@ -5,7 +5,7 @@ LIBRABBITMQ_INCLUDE_PATH=$(LIBRABBITMQ_C_PATH)/librabbitmq
 LIBRABBITMQ_LIBRARY_PATH=$(LIBRABBITMQ_C_PATH)/build/librabbitmq
 
 CXX_INCLUDE_PATH=-I./include -I$(LIBRABBITMQ_INCLUDE_PATH)
-CXX_LIBRARIES=-L$(LIBRABBITMQ_LIBRARY_PATH) -lrabbitmq -lpthread
+CXX_LIBRARIES=-L$(LIBRABBITMQ_LIBRARY_PATH) -lrabbitmq -lpthread -lconfig
 
 CXX_FLAGS=-std=c++14 -Wall -g $(CXX_INCLUDE_PATH)
 CXX=g++ $(CXX_FLAGS)
@@ -19,6 +19,7 @@ SOURCES := \
 	src/consumer.o \
 	src/publisher.o \
 	src/operation.o \
+	src/config_loader.o \
 	src/main.o
 
 .PHONY+=tests all

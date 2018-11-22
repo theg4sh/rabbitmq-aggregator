@@ -1,3 +1,4 @@
+#include <sstream>
 #include "publisher.hpp"
 
 Publisher::Publisher(std::shared_ptr<Connection> connection,
@@ -11,11 +12,24 @@ Publisher::Publisher(std::shared_ptr<Connection> connection,
 {
     _exchange = amqp_bytes_malloc(exchange.size());
     memcpy(_exchange.bytes, (void*)exchange.data(), exchange.size());
-    std::cerr << "Publish exchange: " << (const char*)_exchange.bytes << std::endl;
 
     _routingKey = amqp_bytes_malloc(routingKey.size());
     memcpy(_routingKey.bytes, (void*)routingKey.data(), routingKey.size());
-    std::cerr << "Publish routing key: " << (const char*)_routingKey.bytes << std::endl;
+
+#ifdef DEBUG
+    std::ostringstream oss;
+    oss << "Publish exchange: '[" << _exchange.len << ":" << exchange.size() << "]";
+    for (std::size_t it=0 ; it<_exchange.len; it++) {
+        oss << ((const char*)_exchange.bytes)[it];
+    }
+    oss << std::endl;
+
+    oss << "Publish routing key: [" << _routingKey.len << ":" << routingKey.size() << "]";
+    for (std::size_t it=0; it<_routingKey.len; it++) {
+        oss << ((const char*)_routingKey.bytes)[it];
+    }
+    oss << std::endl;
+#   endif
 }
 
 Publisher::~Publisher() {

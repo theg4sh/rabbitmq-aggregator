@@ -3,6 +3,10 @@
 
 #include <amqp.h>
 
-bool isAmqpError(amqp_rpc_reply_t x);
+bool isAmqpErrorWithMsg(const amqp_rpc_reply_t& x);
+
+bool isAmqpConnectionCloseError(const amqp_rpc_reply_t& x);
+
+bool isAmqpChannelCloseError(const amqp_rpc_reply_t& x);
 
 #endif

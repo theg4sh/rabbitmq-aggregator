@@ -1,37 +1,32 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <string>
+#include <vector>
+
+/**
+ * @brief Config uses in project to configure connections and settings for queues,
+ * but also it describes default values for some parameters.
+ */
+struct QueueConfig {
+    std::string diagTitle;
+    std::string connectionUri;
+    std::string name;
+    std::string exchange;
+    std::string routingKey;
+};
+
 struct Config {
     /**
      * @param enableDiag print out every second statistics by processed messages
      */
-    bool enableDiag = true;
+    bool enableDiag = false;
 
-    const char* mqConsumerConnectionUri = "amqp://guest:guest@localhost:5672/";
+    std::string connectionUri;
 
-    const char* mqPublisherConnectionUri = "amqp://guest:guest@localhost:5672/";
+    std::vector<QueueConfig> consumers;
 
-    struct Queue {
-        /**
-         *
-         */
-        const char* qName;
-        /**
-         *
-         */
-        const char* qExchange;
-        /**
-         *
-         */
-        const char* qRoutingKey;
-    };
-
-    // Incoming
-    Queue qA{"queue-A", "exchange-in", "routing-key.in-A"};
-    Queue qB{"queue-B", "exchange-in", "routing-key.in-B"};
-
-    // Outgoing
-    Queue qPublisher{"queue-C", "exchange-out", "routing-key.out"};
+    QueueConfig publisher;
 };
 
 extern Config cfg;

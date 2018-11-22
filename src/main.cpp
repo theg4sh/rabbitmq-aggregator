@@ -4,13 +4,14 @@
 #include "channel.hpp"
 #include "consumer.hpp"
 #include "operation.hpp"
+#include "config_loader.hpp"
 
-class QueueConsumer : public Consumer
+class ConsumerForOperation : public Consumer
 {
 private:
     Operation& operation;
 public:
-    QueueConsumer(Operation& operation,
+    ConsumerForOperation(Operation& operation,
                   std::shared_ptr<Connection> connection,
                   std::shared_ptr<Channel> channel,
                   std::string queueName,
@@ -26,60 +27,68 @@ public:
     }
 };
 
-int main(int, char**)
+typedef std::pair<std::shared_ptr<Connection>, std::shared_ptr<Channel>> ConnectionAndChannel;
+
+ConnectionAndChannel initializeConnection(const std::string& connectionUri, const std::string& name)
 {
+    auto connection = std::make_shared<Connection>(connectionUri);
+    if (!connection->connect()) {
+        std::cerr << "Connection '" << name << "' to '"
+            << connection->getSafeConnectionInfo() << "' failed" << std::endl;
+        return std::make_pair(nullptr, nullptr);
+    }
+    auto channel = connection->createChannel();
+    if (!channel->open()) {
+        std::cerr << "Failed to open channel " << name
+            << " on connection '" << connection->getSafeConnectionInfo() << "'" << std::endl;
+        return std::make_pair(nullptr, nullptr);
+    }
+    std::cout << "Connected '" << name << "' to '"
+        << connection->getSafeConnectionInfo() << "'." << std::endl;
+
+    return std::make_pair(connection, channel);
+}
+
+int main(int argc, char** argv)
+{
+    if (argc != 2) {
+        std::cerr << "usage: " << argv[0] << " <config.cfg>" << std::endl;
+        return 1;
+    }
     Config cfg;
-
-    auto connectionA = std::make_shared<Connection>(cfg.mqConsumerConnectionUri);
-    if (!connectionA->connect()) {
-        std::cerr << "Connection A failed" << std::endl;
-        return 1;
-    }
-    auto channelA = connectionA->createChannel();
-    if (!channelA->open()) {
-        std::cerr << "Failed to open channel" << std::endl;
+    ConfigLoader cfgload(argv[1]);
+    if (!cfgload.parse(cfg)) {
+        std::cerr << cfgload.getError() << std::endl;
         return 2;
     }
-    std::cout << "Connected A." << std::endl;
+    std::cerr << "Config has been loaded" << std::endl;
 
-    auto connectionB = std::make_shared<Connection>(cfg.mqConsumerConnectionUri);
-    if (!connectionB->connect()) {
-        std::cerr << "Connection B failed" << std::endl;
-        return 1;
-    }
-    auto channelB = connectionB->createChannel();
-    if (!channelB->open()) {
-        std::cerr << "Failed to open channel" << std::endl;
-        return 2;
-    }
-    std::cout << "Connected B." << std::endl;
+    ConnectionAndChannel cacC = initializeConnection(cfg.publisher.connectionUri,
+                                                     cfg.publisher.diagTitle);
 
-    auto connectionC = std::make_shared<Connection>(cfg.mqPublisherConnectionUri);
-    if (!connectionC->connect()) {
-        std::cerr << "Connection C failed" << std::endl;
-        return 1;
+    bool isValid = cacC.first != nullptr;
+    std::vector<ConnectionAndChannel> consumersConn;
+    for (auto& qcfg : cfg.consumers) {
+        auto conn = initializeConnection(qcfg.connectionUri, qcfg.diagTitle);
+        isValid = isValid && conn.first != nullptr;
+        consumersConn.push_back(conn);
     }
-    auto channelC = connectionC->createChannel();
-    if (!channelC->open()) {
-        std::cerr << "Failed to open channel" << std::endl;
-        return 2;
+    if (!isValid) {
+        std::cerr << "An error occurred during attempt to connect consumers or publisher. Exit." << std::endl;
+        return 3;
     }
-    std::cout << "Connected C." << std::endl;
-
-    std::cout << "Channel-A status: " << channelA->statusStr() << std::endl;
-    std::cout << "Channel-B status: " << channelB->statusStr() << std::endl;
-    std::cout << "Channel-C status: " << channelC->statusStr() << std::endl;
 
     Operation operation(cfg.enableDiag);
 
-    std::vector<std::shared_ptr<ControlConsumer>> consumers;
-    consumers.push_back(
-            std::make_shared<QueueConsumer>(operation, connectionA, channelA, cfg.qA.qName, false));
-    consumers.push_back(
-            std::make_shared<QueueConsumer>(operation, connectionB, channelB, cfg.qB.qName, false));
+    std::vector<std::shared_ptr<ControlConsumer>> consumers(cfg.consumers.size());
+    for (std::size_t i=0; i<cfg.consumers.size(); i++) {
+        auto& cac = consumersConn[i];
+        auto& qcfg = cfg.consumers[i];
+        consumers[i] = std::make_shared<ConsumerForOperation>(operation, cac.first, cac.second, qcfg.name, false);
+    }
 
     auto publisher = std::make_shared<Publisher>
-            (connectionC, channelC, cfg.qPublisher.qExchange, cfg.qPublisher.qRoutingKey);
+            (cacC.first, cacC.second, cfg.publisher.exchange, cfg.publisher.routingKey);
 
     operation.init(consumers, publisher);
 

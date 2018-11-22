@@ -45,6 +45,8 @@ public:
     Status status();
     std::string statusStr();
 
+    std::string getSafeConnectionInfo();
+
     amqp_connection_state_t get();
 
     std::shared_ptr<Channel> createChannel();

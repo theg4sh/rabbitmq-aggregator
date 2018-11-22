@@ -1,0 +1,62 @@
+#
+# See documentation for config syntax:
+# https://www.hyperrealm.com/libconfig/libconfig_manual.html#Configuration-Files
+#
+# Uses to declare default connection uri for rabbitmq consumers and publisher
+#
+# connectionUri = "amqp://guest:guest@localhost:5672/vhost";
+
+#
+# Enable reporting a diagnostics once per second about total procceed, messages recieved by period,
+# and procceed by period.
+#
+# enableDiag = 0;
+
+#
+# A list of consumer's queues configurations.
+# They will be procceed one by one, e.g. wait unless got a message from a queue,
+# if got, take a message from next queue and it will repeat un
+#
+consumeFrom = (
+
+	#
+	# Queue configuration should contain name, exchange and routingKey.
+	# It also could contain `connectionUri` to override default value, which declared in global scope.
+	# By default `diagTitle` is equals to queue's name.
+	# 
+	# For an example, consumer's queue configuration could looks like:
+	#
+	#    {
+	#        diagTitle = "Consumer-A";
+	#        connectionUri = "amqps://localhost:5672/";
+	#        name = "queue-A";
+	#        exchange = "";
+	#        routingKey = "";
+	#    }
+	#
+
+	{
+		diagTitle = "Consumer-A";
+		name = "queue-A";
+		exchange = "";
+		routingKey = "";
+	},
+
+	{
+		diagTitle = "Consumer-B";
+		name = "queue-B";
+		exchange = "";
+		routingKey = "";
+	}
+);
+
+#
+# An exchange to which an aggregated message will be pushed.
+# Configuration is the same as consumer's queue.
+#
+publishTo = {
+	diagTitle = "Publisher";
+	name = "queue-C";
+	exchange = "exchange-out";
+	routingKey = "routing-key.out";
+};

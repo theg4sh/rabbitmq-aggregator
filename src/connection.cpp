@@ -1,3 +1,4 @@
+#include <sstream>
 #include "connection.hpp"
 
 Connection::~Connection()
@@ -25,6 +26,15 @@ std::string Connection::statusStr()
     }
     return "<UNKNOWN>";
 }
+
+std::string Connection::getSafeConnectionInfo()
+{
+    std::ostringstream oss;
+    oss << this->resolver.protocol() << "://" << this->resolver.host() << ":"
+        << this->resolver.port() << this->resolver.vhost();
+    return oss.str();
+}
+
 
 amqp_connection_state_t Connection::get()
 {
@@ -80,7 +90,7 @@ bool Connection::connect()
                                         AMQP_SASL_METHOD_PLAIN,
                                         this->resolver.user().c_str(),
                                         this->resolver.pass().c_str());
-    if (isAmqpError(reply)) {
+    if (isAmqpErrorWithMsg(reply)) {
         this->close();
         return false;
     }
